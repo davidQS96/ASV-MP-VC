@@ -9,14 +9,14 @@ import ntpath #Nombre de archivo
 #Función que muestra al usuario una ventana de búsqueda de archivos
 #Devuelve la dirección del archivo de video válido o string de error según sea el caso
 def browseVidFile(root):
-    
-    currdir = os.getcwd()   
+
+    currdir = os.getcwd()
 
     try:
         #https://docs.python.org/3.9/library/dialog.html
         tempdir = filedialog.askopenfilename(parent = root, initialdir = currdir, title = 'Seleccione un archivo de video') #Ventana emergente
         #https://www.thetopsites.net/article/53470882.shtml
-        
+
         if len(tempdir) > 0 and tempdir.lower().endswith(('.avi', '.mp4')): #Archivos de video soportados
             return tempdir
 
@@ -35,7 +35,9 @@ def browseVidFile(root):
 def getNameFromPath(path):
     head, tail = ntpath.split(path) #Head es direccion menos nombre de archivo, tail es el resto
     return tail or ntpath.basename(head) #Si tail es vacio, devuelve el nombre base de head (Caso false or true)
-    
+
+
+
 
 
 
