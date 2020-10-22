@@ -97,7 +97,7 @@ def showVidWindow():
         #https://stackoverflow.com/questions/47788247/python-opencv-how-do-i-detect-when-a-video-finishes-playing
         if ret: #ret es verdadero si videocapture no ha leido todos los frames del video aun
             nframe = vm.rescale_frame(frame, scale = scaleFactor)
-            cv2.imshow('nframe', nframe)
+            cv2.imshow('Video analizado', nframe)
 
             if cv2.waitKey(1) & 0xFF == ord('q') or cs.globalElems["ableToCloseVidWindow"]:
                 break
@@ -107,6 +107,12 @@ def showVidWindow():
                 pass
 
             break
+
+def showLoadingWindow():
+    loadingWd = Toplevel(root)
+    Label(loadingWd, text = "Analizando video ...", padx = 20, pady = 20).pack()
+    cs.addNewGlobElem(loadingWd, "loadingWd")
+
 
 #Esta funcion convierte los datos obtenidos de DeteccObjetos a datos faciles de interpretar y mostrar en el GUI
 #generatedNDArray es una lista tipo ndarray con la info generada
@@ -121,22 +127,15 @@ def translateGenerated(generatedNDArray):
     for track in generatedNDArray:
         trackInfo = track.tolist() #Convierte ndarray a lista
 
-        print("iteracion" + str(cont))
-        print(trackInfo)
-
         #Cambio de primer elemento
         if trackInfo[0] != 1:
             cont += 1
             continue
 
-        print("paso el if")
-
         trackInfo[0] = trackDict[str(cont)]
         temp = str(trackInfo[1])
         trackInfo[1] = directDict[str(int(trackInfo[2]))]
         trackInfo[2] = temp
-
-        print("paso conversiones")
 
         generatedList += [trackInfo]
 
@@ -228,7 +227,6 @@ def stateWindow():
     canContinue = cs.globalElems["canContinue"]
     cs.addNewGlobElem(False, "ableToCloseVidWindow")
 
-
     #Verificacion de archivo correcto
     if(not canContinue or pathStrVar.get() == ""):
         errorStrVar = cs.getElemFromCurr("errorStrVar")
@@ -237,6 +235,7 @@ def stateWindow():
         cs.globalElems["canContinue"] = False
         return -1
 
+    print("Analizando video...")
 
     stateWd = Toplevel(root)
     stateWd.protocol("WM_DELETE_WINDOW", closingStateWindow) #Accion cuando se cierra la ventana
@@ -260,7 +259,6 @@ def stateWindow():
     dataList = do.contornos(relPath)
 
     trueDataList = translateGenerated(dataList)
-    print(trueDataList)
     cont = 1
 
     for track in trueDataList:
@@ -283,6 +281,7 @@ def stateWindow():
     cs.currWindowSet.packAllChildren()
 
     thr.Thread(target=showVidWindow).start() #Carga aqui para que se pueda cargar lo anterior
+
 
 
 #-------------------------------------------------------

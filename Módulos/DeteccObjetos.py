@@ -81,7 +81,6 @@ def contornos(nombre):
 
 
 # Detección de las objetos e información de posición
-    print("conteo: " + str(count))
     while True:
         ret, frame = cap.read()
         if ret == False:
@@ -193,7 +192,6 @@ def contornos(nombre):
     count = 0
     while True:
         col = 0
-        print(1)
         if speed[count,0] == 1:
             while True:
                 if speed[count,7] == 0:
