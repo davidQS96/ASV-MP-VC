@@ -50,8 +50,8 @@ def contornos(nombre):
                if area > 60000:
                     f= cv2.boundingRect(cnt)
                     pista[count,0] = 1
-                    pista[count,1] = f[1]+10
-                    pista[count,2] = f[1]+f[3]-20
+                    pista[count,1] = f[1]+20
+                    pista[count,2] = f[1]+f[3]-40
                     mask[0:f[1],:] = 0
                     mask[(f[1]+f[3]):1080,:] = 0
                     maskp = maskp + mask
@@ -96,7 +96,11 @@ def contornos(nombre):
                     upper = 360
                     lower_blue = np.array([lower, 0, 0])
                     upper_blue = np.array([upper,255,255])
-                    mask = cv2.inRange(hsv,lower_blue,upper_blue)
+                    mask1 = cv2.inRange(hsv,lower_blue,upper_blue)
+                    lower_blue = np.array([0, 0, 0])
+                    upper_blue = np.array([360,60,255])
+                    mask2 = cv2.inRange(hsv,lower_blue,upper_blue)
+                    mask = mask1+mask2
                     mask[:,0:480] = 0
                     mask[:,1440:1920] = 0
                 elif count == 5:
@@ -104,7 +108,11 @@ def contornos(nombre):
                     upper = 300
                     lower_blue = np.array([lower, 0, 0])
                     upper_blue = np.array([upper,255,255])
-                    mask = cv2.inRange(hsv,lower_blue,upper_blue)
+                    mask1 = cv2.inRange(hsv,lower_blue,upper_blue)
+                    lower_blue = np.array([0, 0, 0])
+                    upper_blue = np.array([360,60,255])
+                    mask2 = cv2.inRange(hsv,lower_blue,upper_blue)
+                    mask = mask1+mask2
                     mask[:,0:480] = 0
                     mask[:,1440:1920] = 0
                 else:
@@ -116,7 +124,10 @@ def contornos(nombre):
                     upper_blue = np.array([upper,255,255])
                     mask1 = cv2.inRange(hsv,lower_alt,upper_blue)
                     mask2 = cv2.inRange(hsv,lower_blue,upper_alt)
-                    mask = mask1 + mask2
+                    lower_blue = np.array([0, 0, 0])
+                    upper_blue = np.array([360,60,255])
+                    mask3 = cv2.inRange(hsv,lower_blue,upper_blue)
+                    mask = mask1 + mask2 + mask3
                     mask[:,0:420] = 0
                     mask[:,1500:1920] = 0
 
@@ -140,28 +151,28 @@ def contornos(nombre):
             y = approx.ravel()[1]
 
 
-            if area > 4000 and area < 13000:
+            if area > 2000 and area < 18000:
                 cv2.drawContours(frame, [approx], 0, (0, 0, 0), 5)
                 M = cv2.moments(cnt)
                 cX = int(M["m10"] / M["m00"])
                 cY = int(M["m01"] / M["m00"])
                 if pistar[0,1] < cY < pistar[0,2]:
                     speed[0,0] = 1
-                    if 970 < cX < 1010:
+                    if 950 < cX < 1030:
                         speed[0,1] = 1
                         if p1 < 5:
                             speed[1,2+p1] = cX
                             p1 = p1 + 1
                 elif pistar[1,1] < cY < pistar[1,2]:
                     speed[1,0] = 1
-                    if 970 < cX < 1010:
+                    if 950 < cX < 1030:
                         speed[1,1] = 1
                         if p2 < 5:
                             speed[1,2+p2] = cX
                             p2 = p2 + 1
                 elif pistar[2,1] < cY < pistar[2,2]:
                     speed[2,0] = 1
-                    if 970 < cX < 1010:
+                    if 950 < cX < 1030:
                         speed[2,1] = 1
                         if p3 < 5:
                             speed[2,2+p3] = cX
@@ -195,6 +206,8 @@ def contornos(nombre):
                         speed[count,7]=speed[count,7]*-1
                         speed[count,7] = speed[count,7]*factor[count]/0.033123
                         speed[count,8]=1
+                    else:
+                        speed[count,7] = speed[count,7]*factor[count]/0.033123
                     break
         count = count + 1
         if count > 2:
