@@ -19,5 +19,5 @@ pip install [nombre de biblioteca]
 
 (si tiene solo una version de python instalada)
 
-El programa principal se llama Main - Menus
+El programa principal se llama Main
 

@@ -3,8 +3,8 @@
 #Importación de módulos
 from tkinter import * #Para GUI (filedialog, etc)
 from PIL import ImageTk, Image #Manejo de imágenes
-from skimage import io
-from skimage import color
+# from skimage import io
+# from skimage import color
 from threading import * #Para abrir procesos de tkinter y cv2 al mismo tiempo
 import numpy as np
 import cv2
@@ -16,6 +16,7 @@ import Módulos.GuiManagement as gm
 import Módulos.FileManagement as fm
 import Módulos.VidManagement as vm
 import Módulos.ImgManagement as im
+import Módulos.DeteccObjetos as do
 
 #-------------------------------------------------------
 #Funciones
@@ -107,6 +108,45 @@ def showVidWindow():
 
             break
 
+#Esta funcion convierte los datos obtenidos de DeteccObjetos a datos faciles de interpretar y mostrar en el GUI
+#generatedNDArray es una lista tipo ndarray con la info generada
+#Devuelve la info de objetos detectados
+def translateGenerated(generatedNDArray):
+    trackDict = {"1": "Pista 1 (amarilla)", "2": "Pista 2 (azul)", "3": "Pista 3 (roja)"}
+    directDict = {"0": "Der. a izq.", "1": "Izq. a der."}
+
+    cont = 1
+    generatedList = []
+
+    for track in generatedNDArray:
+        trackInfo = track.tolist() #Convierte ndarray a lista
+
+        print("iteracion" + str(cont))
+        print(trackInfo)
+
+        #Cambio de primer elemento
+        if trackInfo[0] != 1:
+            cont += 1
+            continue
+
+        print("paso el if")
+
+        trackInfo[0] = trackDict[str(cont)]
+        temp = str(trackInfo[1])
+        trackInfo[1] = directDict[str(int(trackInfo[2]))]
+        trackInfo[2] = temp
+
+        print("paso conversiones")
+
+        generatedList += [trackInfo]
+
+        cont += 1
+
+    return generatedList
+
+
+
+
 #Funcion para eliminar la actual ventana y volver a la anterior
 def showPrevWindow():
     cs.globalElems["ableToCloseVidWindow"] = True
@@ -121,6 +161,10 @@ def reopenSelectWindow():
 
 #Funcion para permitir que se cierre ventana de opencv tambien
 def closingStateWindow():
+    cs.globalElems["ableToCloseVidWindow"] = True
+    root.destroy()
+
+def exitProgram():
     cs.globalElems["ableToCloseVidWindow"] = True
     root.destroy()
 
@@ -185,7 +229,6 @@ def stateWindow():
     cs.addNewGlobElem(False, "ableToCloseVidWindow")
 
 
-
     #Verificacion de archivo correcto
     if(not canContinue or pathStrVar.get() == ""):
         errorStrVar = cs.getElemFromCurr("errorStrVar")
@@ -204,17 +247,36 @@ def stateWindow():
     #Widgets y similares
     titleLbl = Label(stateWd, text = title)
 
-    stateTbl = gm.TkDataTable(stateWd, 25, 3)
+    #Tabla de datos
+    stateTbl = gm.TkDataTable(stateWd, 7, 3)
     stateTbl.addHeaders(["No. Pista", "Dirección", "Velocidad (cm/s)"])
 
-    nextBtn = Button(stateWd, text = "Cargar otro video", command = reopenSelectWindow)
-    backBtn = Button(stateWd, text = "Volver", command = showPrevWindow)
+    vidPath = cs.globalElems["vidPath"]
+
+    currDir = os.getcwd()
+    relPath = os.path.relpath(vidPath, currDir)
+
+    #Se generan los datos del estado de cada pista
+    dataList = do.contornos(relPath)
+
+    trueDataList = translateGenerated(dataList)
+    print(trueDataList)
+    cont = 1
+
+    for track in trueDataList:
+        stateTbl.addRow(track, cont + 1)
+        cont += 1
+
+    #nextBtn = Button(stateWd, text = "Cargar otro video", command = reopenSelectWindow)
+    #backBtn = Button(stateWd, text = "Volver", command = showPrevWindow)
+    exitBtn = Button(stateWd, text = "Salir", command = exitProgram)
 
     #Agrega Widgets a padre
     cs.addNewWidgetToCurr(titleLbl, "titleLbl")
     cs.addNewWidgetToCurr(stateTbl, "stateTbl")
-    cs.addNewWidgetToCurr(nextBtn,"nextBtn")
-    cs.addNewWidgetToCurr(backBtn, "backBtn")
+    #cs.addNewWidgetToCurr(nextBtn,"nextBtn")
+   # cs.addNewWidgetToCurr(backBtn, "backBtn")
+    cs.addNewWidgetToCurr(exitBtn, "exitBtn")
 
 
     #Coloca widgets en pantalla
@@ -229,11 +291,17 @@ def stateWindow():
 #Pantalla raíz
 root = Tk()
 
+icon = PhotoImage(file = "Archivos de programa/icono.png")
+root.iconphoto(True, icon)
+
+
 #Crea instancia global de CurrentState y guarda root
 cs = gm.CurrentStateTk()
 cs.addNewWindow(root, "root")
 cs.addNewGlobElem("Miniproyecto: Uso de visión para mediciones en entornos", "title")
 cs.addNewGlobElem(False, "canContinue")
+
+root.title("Miniproyecto")
 
 #Se abre pantalla inicial
 selectWindow()

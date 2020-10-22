@@ -1,5 +1,5 @@
 import cv2
-import numpy as np 
+import numpy as np
 
 def contornos(nombre):
     cap = cv2.VideoCapture(nombre)
@@ -8,9 +8,9 @@ def contornos(nombre):
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     if(cap.isOpened() == False):
         print("Error")
-    
-    
-# Variables de inicialización del programa   
+
+
+# Variables de inicialización del programa
     lower = 0
     upper = 60
     p1 = 0
@@ -23,7 +23,7 @@ def contornos(nombre):
     maskp = np.zeros(shape=(int(height),int(width)))
     masko = maskp.astype(np.uint8)
     factor = [0.036413,0.04076,0.045109]
-  
+
 #Detección de pista y obtención de información necesaria
     while True:
         ret, frame = cap.read()
@@ -31,22 +31,22 @@ def contornos(nombre):
         count = 0
         #Detección de pistas por rango de colores
         while True:
-            
+
             lower_blue = np.array([lower, 70, 50])
             upper_blue = np.array([upper,255,255])
             mask = cv2.inRange(hsv,lower_blue,upper_blue)
             mask[:,0:480] = 0
             mask[:,1440:1920] = 0
             contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    
-    
+
+
             for cnt in contours:
                area = cv2.contourArea(cnt)
                approx = cv2.approxPolyDP(cnt, 0.02*cv2.arcLength(cnt, True), True)
                x = approx.ravel()[0]
                y = approx.ravel()[1]
-    
-    
+
+
                if area > 60000:
                     f= cv2.boundingRect(cnt)
                     pista[count,0] = 1
@@ -55,21 +55,21 @@ def contornos(nombre):
                     mask[0:f[1],:] = 0
                     mask[(f[1]+f[3]):1080,:] = 0
                     maskp = maskp + mask
-                    
+
             lower = lower + 60
             upper = upper + 60
-            count = count + 1     
-    
+            count = count + 1
+
             if count > 5:
                 break
-        
+
         break
 
-#Compresión de la informcación de la pista    
+#Compresión de la informcación de la pista
     count = 0
     fila = 0
     while True:
-        
+
         if pista[count,0] == 1:
             pistar[fila,:] = pista[count,:]
             fila = fila+1
@@ -78,10 +78,10 @@ def contornos(nombre):
             count = count + 1
         if fila == 3:
             break
-            
-    
-# Detección de las objetos e información de posición   
-    print(count)
+
+
+# Detección de las objetos e información de posición
+    print("conteo: " + str(count))
     while True:
         ret, frame = cap.read()
         if ret == False:
@@ -119,27 +119,27 @@ def contornos(nombre):
                     mask = mask1 + mask2
                     mask[:,0:420] = 0
                     mask[:,1500:1920] = 0
-            
+
                 limitupper = int(pista[count,1])
                 limitlower = int(pista[count,2])
                 mask[0:limitupper,:] = 0
                 mask[limitlower:1080,:] = 0
-                masko = masko + mask    
+                masko = masko + mask
             count = count + 1
             if count == 5:
                 break
-    
-    
+
+
         contours, _ = cv2.findContours(masko, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    
+
         #Detección de objeto y ubicación de pistas
         for cnt in contours:
             area = cv2.contourArea(cnt)
             approx = cv2.approxPolyDP(cnt, 0.02*cv2.arcLength(cnt, True), True)
             x = approx.ravel()[0]
             y = approx.ravel()[1]
-    
-    
+
+
             if area > 4000 and area < 13000:
                 cv2.drawContours(frame, [approx], 0, (0, 0, 0), 5)
                 M = cv2.moments(cnt)
@@ -165,20 +165,20 @@ def contornos(nombre):
                         speed[2,1] = 1
                         if p3 < 5:
                             speed[2,2+p3] = cX
-                            p3 = p3 + 1        
-    
-                
-                
+                            p3 = p3 + 1
+
+
+
                 if len(approx) > 4 and len(approx) < 8:
                     cv2.putText(frame, "Pista", (x, y), font, 1, (0, 0, 0))
-        
-        cv2.imshow("Frame",frame)
-        cv2.imshow("Mask", masko)
-        cv2.imshow("Pista", maskp)
+
+        # cv2.imshow("Frame",frame)
+        # cv2.imshow("Mask", masko)
+        # cv2.imshow("Pista", maskp)
         masko[:,:] = 0
 
 
-#Calculo de la velocidad y dirección    
+#Calculo de la velocidad y dirección
     count = 0
     while True:
         col = 0
@@ -199,17 +199,17 @@ def contornos(nombre):
         count = count + 1
         if count > 2:
             break
-        
-        
+
+
 #Empaquetado de informacion
     data [:,0] = speed[:,0]
     data [:,1] = speed[:,7]
     data [:,2] = speed[:,8]
-    
 
-        
+
+
     cap.release()
     cv2.destroyAllWindows()
-    return data
+    return data #[[[pista1, velocidad, direccion] [pista2, velocidad, direccion] [pista3, velocidad, direccion]]]
 
 
