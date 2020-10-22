@@ -1,16 +1,16 @@
 import cv2
 import numpy as np 
 
-def contornos(cap):
+def contornos(nombre):
+    cap = cv2.VideoCapture(nombre)
     font = cv2.FONT_HERSHEY_COMPLEX
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    print(height,width)
     if(cap.isOpened() == False):
         print("Error")
     
     
-    
+# Variables de inicialización del programa   
     lower = 0
     upper = 60
     p1 = 0
@@ -22,12 +22,14 @@ def contornos(cap):
     data = np.zeros(shape=(3,3))
     maskp = np.zeros(shape=(int(height),int(width)))
     masko = maskp.astype(np.uint8)
-    
+    factor = [0.036413,0.04076,0.045109]
+  
+#Detección de pista y obtención de información necesaria
     while True:
         ret, frame = cap.read()
-        #blurred_frame = cv2.GaussianBlur(frame, (5, 5), 0)
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         count = 0
+        #Detección de pistas por rango de colores
         while True:
             
             lower_blue = np.array([lower, 70, 50])
@@ -62,7 +64,8 @@ def contornos(cap):
                 break
         
         break
-    
+
+#Compresión de la informcación de la pista    
     count = 0
     fila = 0
     while True:
@@ -77,15 +80,15 @@ def contornos(cap):
             break
             
     
-    
+# Detección de las objetos e información de posición   
     print(count)
     while True:
         ret, frame = cap.read()
         if ret == False:
             break
-        #blurred_frame = cv2.GaussianBlur(frame, (5, 5), 0)
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         count = 0
+        #Mascaras de segmentación de objetos
         while True:
             if pista[count,0] == 1:
                 if count == 0:
@@ -129,7 +132,7 @@ def contornos(cap):
     
         contours, _ = cv2.findContours(masko, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     
-    
+        #Detección de objeto y ubicación de pistas
         for cnt in contours:
             area = cv2.contourArea(cnt)
             approx = cv2.approxPolyDP(cnt, 0.02*cv2.arcLength(cnt, True), True)
@@ -173,7 +176,9 @@ def contornos(cap):
         cv2.imshow("Mask", masko)
         cv2.imshow("Pista", maskp)
         masko[:,:] = 0
-    
+
+
+#Calculo de la velocidad y dirección    
     count = 0
     while True:
         col = 0
@@ -188,14 +193,23 @@ def contornos(cap):
                 if col < 4:
                     if speed[count,7] < 0:
                         speed[count,7]=speed[count,7]*-1
+                        speed[count,7] = speed[count,7]*factor[count]/0.033123
                         speed[count,8]=1
                     break
         count = count + 1
         if count > 2:
             break
+        
+        
+#Empaquetado de informacion
     data [:,0] = speed[:,0]
     data [:,1] = speed[:,7]
     data [:,2] = speed[:,8]
-            
+    
+
+        
     cap.release()
     cv2.destroyAllWindows()
+    return data
+
+
