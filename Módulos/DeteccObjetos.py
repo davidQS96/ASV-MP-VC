@@ -1,3 +1,4 @@
+<<<<<<< HEAD:Módulos/DeteccObjetos.py
 import cv2
 import numpy as np
 
@@ -133,6 +134,7 @@ def contornos(nombre):
         contours, _ = cv2.findContours(masko, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         #Detección de objeto y ubicación de pistas
+=======
 
 
 def contornos(cap):
@@ -146,12 +148,14 @@ def contornos(cap):
     
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 	
+>>>>>>> parent of 3279862... Función de velocidad:funciones.py
         for cnt in contours:
             area = cv2.contourArea(cnt)
             approx = cv2.approxPolyDP(cnt, 0.02*cv2.arcLength(cnt, True), True)
             x = approx.ravel()[0]
             y = approx.ravel()[1]
 
+<<<<<<< HEAD:Módulos/DeteccObjetos.py
 
             if area > 4000 and area < 13000:
                 cv2.drawContours(frame, [approx], 0, (0, 0, 0), 5)
@@ -221,6 +225,20 @@ def contornos(cap):
 
 
 
+=======
+            if area > 400:
+                cv2.drawContours(frame, [approx], 0, (0, 0, 0), 5)
+    
+    
+        cv2.imshow("Frame",frame)
+        cv2.imshow("Mask", mask)
+        key = cv2.waitKey(1)
+        if key == 27:
+            break
+    
+
+        
+>>>>>>> parent of 3279862... Función de velocidad:funciones.py
     cap.release()
     cv2.destroyAllWindows()
     return data #[[[pista1, velocidad, direccion] [pista2, velocidad, direccion] [pista3, velocidad, direccion]]]
